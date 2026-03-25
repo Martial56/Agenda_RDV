@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}🗓️ {{ title }}{% endblock %}
+{% block content %}
+<div style="max-width:800px;">
+
+  {% if patient %}
+  <div class="alert alert-info">
+    ℹ️ RDV pour : <strong>{{ patient.numero_unique }}</strong>
+    — {{ patient.get_sexe_display }}, {{ patient.age_display }}
+    — {{ patient.get_type_client_display }}
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">📋 Informations du RDV (Colonnes A à J)</span>
+    </div>
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if not patient %}
+        {# ── Sidebar : liste déroulante pour choisir le patient ── #}
+        <div class="form-group">
+          <label class="form-label">Patient *</label>
+          {{ form.patient }}
+          {% if form.patient.errors %}
+          <div style="color:var(--danger);font-size:12px;margin-top:4px;">
+            ⚠️ {{ form.patient.errors.0 }}
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+        {# Quand patient est fourni, il est assigné directement dans la vue — aucun champ caché nécessaire #}
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Date du Rendez-Vous *</label>
+            {{ form.date_rdv }}
+            {% if form.date_rdv.errors %}
+            <div style="color:var(--danger);font-size:12px;margin-top:4px;">⚠️ {{ form.date_rdv.errors.0 }}</div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date de la Dernière Visite *</label>
+            {{ form.date_derniere_visite }}
+            {% if form.date_derniere_visite.errors %}
+            <div style="color:var(--danger);font-size:12px;margin-top:4px;">⚠️ {{ form.date_derniere_visite.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Motif du RDV (Col. J) *</label>
+            {{ form.motif_rdv }}
+            <small style="color:var(--text-muted);font-size:11px;margin-top:4px;display:block;">
+              1=Bilan initial | 2=Bilan suivi | 3=Charge virale | 4=Renouvellement
+              | 5=Visite suivi | 6=PCR | 7=Statut exposé | 8=CO/ETP
+            </small>
+            {% if form.motif_rdv.errors %}
+            <div style="color:var(--danger);font-size:12px;margin-top:4px;">⚠️ {{ form.motif_rdv.errors.0 }}</div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Préciser si Autre</label>
+            {{ form.motif_rdv_autre }}
+          </div>
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">⚠️ {{ form.non_field_errors.0 }}</div>
+        {% endif %}
+
+        <div style="display:flex;gap:12px;margin-top:8px;">
+          <button type="submit" class="btn btn-primary">💾 Enregistrer le RDV</button>
+          <a href="{% if patient %}{% url 'patient_detail' patient.pk %}{% else %}{% url 'agenda_jour' %}{% endif %}"
+             class="btn btn-ghost">Annuler</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

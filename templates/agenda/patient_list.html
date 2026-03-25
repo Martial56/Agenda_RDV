@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Patients{% endblock %}
+{% block page_title %}👥 Liste des Patients{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">👥 Patients enregistrés ({{ patients.count }})</span>
+    <a href="{% url 'patient_create' %}" class="btn btn-primary btn-sm">+ Nouveau Patient</a>
+  </div>
+  <div class="card-body" style="padding-bottom:0;">
+    <form method="get" style="display:flex;gap:10px;margin-bottom:16px;">
+      <input type="text" name="q" class="form-control" placeholder="🔍 Rechercher par ID, téléphone, adresse..." value="{{ query }}" style="max-width:400px;">
+      <button type="submit" class="btn btn-primary">Chercher</button>
+      {% if query %}<a href="{% url 'patient_list' %}" class="btn btn-ghost">✕ Effacer</a>{% endif %}
+    </form>
+  </div>
+  <div class="table-wrapper">
+    {% if patients %}
+    <table class="arv-table">
+      <thead>
+        <tr>
+          <th>ID Unique</th><th>Sexe</th><th>Âge</th><th>Type</th>
+          <th>Sous ARV depuis</th><th>Contact</th><th>Résidence</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in patients %}
+        <tr>
+          <td><a href="{% url 'patient_detail' p.pk %}" class="patient-id">{{ p.numero_unique }}</a></td>
+          <td>{% if p.sexe == 'M' %}<span class="badge badge-info">♂ M</span>{% else %}<span class="badge badge-warning">♀ F</span>{% endif %}</td>
+          <td class="mono">{{ p.age_display }}</td>
+          <td><span class="badge badge-secondary">{{ p.get_type_client_display|truncatechars:20 }}</span></td>
+          <td class="mono">{{ p.date_mise_sous_arv|date:"d/m/Y" }}</td>
+          <td class="mono">{{ p.contact_telephone }}</td>
+          <td style="font-size:12px;">{{ p.residence_adresse|truncatechars:30 }}</td>
+          <td>
+            <div style="display:flex;gap:4px;">
+              <a href="{% url 'patient_detail' p.pk %}" class="btn btn-sm btn-ghost">👁 Voir</a>
+              <a href="{% url 'rdv_create_for_patient' p.pk %}" class="btn btn-sm btn-primary">+ RDV</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state"><div class="icon">👥</div><p>Aucun patient trouvé{% if query %} pour "{{ query }}"{% endif %}</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

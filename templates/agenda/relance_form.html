@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Relance{% endblock %}
+{% block page_title %}
+  {% if type_relance == 'preventive' %}🔔 Relance Préventive (J-2){% else %}⚠️ Relance Absence (J+7){% endif %}
+{% endblock %}
+{% block content %}
+<div style="max-width:640px;">
+
+  {# Bandeau contextuel selon le type #}
+  {% if type_relance == 'preventive' %}
+  <div class="alert alert-warning">
+    <div>
+      <strong>🔔 Relance préventive — confirmation J-2</strong><br>
+      <small>Patient <strong>{{ rdv.patient.numero_unique }}</strong>
+      — RDV prévu le <strong>{{ rdv.date_rdv|date:"d/m/Y" }}</strong>
+      ({{ rdv.get_motif_rdv_display }})</small>
+    </div>
+  </div>
+  {% else %}
+  <div class="alert alert-danger">
+    <div>
+      <strong>⚠️ Relance absence — patient non venu depuis ≥ 7 jours</strong><br>
+      <small>Patient <strong>{{ rdv.patient.numero_unique }}</strong>
+      — RDV manqué le <strong>{{ rdv.date_rdv|date:"d/m/Y" }}</strong>
+      ({{ rdv.get_motif_rdv_display }})</small>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if type_relance == 'preventive' %}
+        <div class="form-section">
+          <div class="form-section-title">🔔 Relance préventive — Colonne K</div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Date de la relance</label>
+              {{ form.date_relance_preventive }}
+            </div>
+            <div class="form-group">
+              <label class="form-label">Moyen utilisé</label>
+              {{ form.moyen_relance_preventive }}
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Résultat</label>
+            {{ form.resultat_relance_preventive }}
+          </div>
+        </div>
+        {% else %}
+        <div class="form-section">
+          <div class="form-section-title">⚠️ Relance absence — Colonne L</div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Date de la relance</label>
+              {{ form.date_relance_absence }}
+            </div>
+            <div class="form-group">
+              <label class="form-label">Moyen utilisé</label>
+              {{ form.moyen_relance_absence }}
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Résultat</label>
+            {{ form.resultat_relance_absence }}
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="form-section">
+          <div class="form-section-title">🗓️ Si RDV reprogrammé</div>
+          <div class="form-group">
+            <label class="form-label">Nouvelle date de RDV</label>
+            {{ form.date_rdv_reprogramme }}
+            <small style="color:var(--text-muted);font-size:11px;margin-top:4px;display:block;">
+              💡 À remplir uniquement si le résultat est "RDV reprogrammé".
+              Un nouveau RDV sera automatiquement créé dans l'agenda.
+            </small>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;">
+          <button type="submit" class="btn btn-primary">💾 Enregistrer la Relance</button>
+          <a href="{% url 'a_relancer_list' %}" class="btn btn-ghost">Annuler</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {# Fiche contact du patient #}
+  <div class="card">
+    <div class="card-header"><span class="card-title">📋 Contact patient</span></div>
+    <div class="card-body" style="display:flex;gap:32px;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Téléphone</div>
+        <div class="mono fw-bold">{{ rdv.patient.contact_telephone }}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Résidence</div>
+        <div>{{ rdv.patient.residence_adresse }}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Type</div>
+        <div>{{ rdv.patient.get_type_client_display }}</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Synthèse Hebdo{% endblock %}
+{% block page_title %}📋 {{ synthese }}{% endblock %}
+{% block content %}
+<div class="stat-grid" style="grid-template-columns:repeat(4,1fr);">
+  <div class="stat-card info"><div class="stat-label">Prévus</div><div class="stat-value">{{ synthese.total_rdv_prevus }}</div></div>
+  <div class="stat-card success"><div class="stat-label">Venus</div><div class="stat-value">{{ synthese.total_venus }}</div></div>
+  <div class="stat-card danger"><div class="stat-label">Absents</div><div class="stat-value">{{ synthese.total_absents }}</div></div>
+  <div class="stat-card primary"><div class="stat-label">Taux Présence</div><div class="stat-value">{{ synthese.taux_presence }}%</div></div>
+</div>
+<div class="card">
+  <div class="card-header"><span class="card-title">❌ Patients absents ce mois</span></div>
+  {% if rdv_absents %}
+  <div class="table-wrapper">
+    <table class="arv-table">
+      <thead><tr><th>Patient</th><th>Date RDV</th><th>Motif</th><th>Relance</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for rdv in rdv_absents %}
+        <tr>
+          <td><a href="{% url 'patient_detail' rdv.patient.pk %}" class="patient-id">{{ rdv.patient.numero_unique }}</a></td>
+          <td class="mono">{{ rdv.date_rdv|date:"d/m/Y" }}</td>
+          <td>{{ rdv.get_motif_rdv_display }}</td>
+          <td>{% if rdv.date_relance %}<span class="badge badge-info">Relancé</span>{% else %}<span class="badge badge-danger">Non relancé</span>{% endif %}</td>
+          <td><a href="{% url 'rdv_relance_absence' rdv.pk %}" class="btn btn-sm btn-outline">📞 Relancer</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><div class="icon">✅</div><p>Tous les patients sont venus cette semaine</p></div>
+  {% endif %}
+</div>
+{% endblock %}

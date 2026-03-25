@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Patient {{ patient.numero_unique }}{% endblock %}
+{% block page_title %}👤 Fiche Patient{% endblock %}
+{% block content %}
+
+<div style="display:grid;grid-template-columns:1fr 2fr;gap:20px;">
+  <!-- Infos patient -->
+  <div>
+    <div class="card mb-3">
+      <div class="card-header">
+        <span class="card-title">📋 Informations Patient</span>
+        <a href="{% url 'patient_edit' patient.pk %}" class="btn btn-ghost btn-sm">✏️ Modifier</a>
+      </div>
+      <div class="card-body">
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="width:64px;height:64px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 10px;">
+            {% if patient.sexe == 'M' %}♂{% else %}♀{% endif %}
+          </div>
+          <div class="patient-id" style="font-size:16px;display:inline-block;margin-bottom:6px;">{{ patient.numero_unique }}</div><br>
+          {% if patient.sexe == 'M' %}<span class="badge badge-info">Masculin</span>{% else %}<span class="badge badge-warning">Féminin</span>{% endif %}
+        </div>
+        
+        <table style="width:100%;font-size:13px;">
+          <tr><td style="color:var(--text-muted);padding:6px 0;width:40%;">Âge</td><td class="fw-bold">{{ patient.age_display }}</td></tr>
+          <tr><td style="color:var(--text-muted);padding:6px 0;">Type</td><td>{{ patient.get_type_client_display }}</td></tr>
+          {% if patient.population_cles %}<tr><td style="color:var(--text-muted);padding:6px 0;">Pop. clés</td><td>{{ patient.population_cles }}</td></tr>{% endif %}
+          <tr><td style="color:var(--text-muted);padding:6px 0;">Sous ARV</td><td class="mono">{{ patient.date_mise_sous_arv|date:"d/m/Y" }}</td></tr>
+          <tr><td style="color:var(--text-muted);padding:6px 0;">Téléphone</td><td class="mono">{{ patient.contact_telephone }}</td></tr>
+          <tr><td style="color:var(--text-muted);padding:6px 0;">Résidence</td><td>{{ patient.residence_adresse }}</td></tr>
+          <tr><td style="color:var(--text-muted);padding:6px 0;">Établ.</td><td class="mono">{{ patient.code_etablissement }}</td></tr>
+        </table>
+        
+        <div class="mt-3">
+          <a href="{% url 'rdv_create_for_patient' patient.pk %}" class="btn btn-primary w-100" style="justify-content:center;">🗓️ Planifier un RDV</a>
+        </div>
+      </div>
+    </div>
+
+    {% if prochain_rdv %}
+    <div class="card" style="border-color:var(--primary);border-width:2px;">
+      <div class="card-header"><span class="card-title">⏰ Prochain RDV</span></div>
+      <div class="card-body">
+        <div style="font-size:24px;font-weight:800;color:var(--primary);font-family:'JetBrains Mono',monospace;">
+          {{ prochain_rdv.date_rdv|date:"d/m/Y" }}
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">{{ prochain_rdv.get_motif_rdv_display }}</div>
+        <div class="mt-2" style="display:flex;gap:6px;">
+          <a href="{% url 'rdv_presence' prochain_rdv.pk %}" class="btn btn-sm btn-success">✓ Présence</a>
+          <a href="{% url 'rdv_relance_preventive' prochain_rdv.pk %}" class="btn btn-sm btn-outline">📞 Relance</a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Historique RDV -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">📅 Historique des Rendez-Vous</span>
+      <span style="font-size:12px;color:var(--text-muted);">{{ rdv_list.count }} RDV</span>
+    </div>
+    <div class="table-wrapper">
+      {% if rdv_list %}
+      <table class="arv-table">
+        <thead>
+          <tr><th>#</th><th>Date RDV</th><th>Motif</th><th>Relance</th><th>Présence</th><th>Prochain RDV</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for rdv in rdv_list %}
+          <tr>
+            <td><div class="agenda-num" style="width:28px;height:28px;font-size:11px;">{{ rdv.numero_ordre }}</div></td>
+            <td class="mono">{{ rdv.date_rdv|date:"d/m/Y" }}</td>
+            <td><span class="badge badge-primary">{{ rdv.get_motif_rdv_display|truncatechars:20 }}</span></td>
+            <td>
+              {% if rdv.date_relance %}
+              <span class="badge badge-info" style="font-size:10px;">{{ rdv.date_relance|date:"d/m" }}</span>
+              {% else %}<span class="text-muted">—</span>{% endif %}
+            </td>
+            <td>
+              {% if rdv.est_venu == True %}<span class="badge badge-success">✓ OUI</span>
+              {% elif rdv.est_venu == False %}<span class="badge badge-danger">✗ NON</span>
+              {% else %}<span class="badge badge-warning">⏳</span>{% endif %}
+            </td>
+            <td class="mono" style="font-size:11px;">
+              {% if rdv.date_prochain_rdv %}{{ rdv.date_prochain_rdv|date:"d/m/Y" }}{% else %}—{% endif %}
+            </td>
+            <td>
+              <div style="display:flex;gap:4px;">
+                {% if rdv.est_venu is None %}<a href="{% url 'rdv_presence' rdv.pk %}" class="btn btn-sm btn-success">✓</a>{% endif %}
+                <a href="{% url 'rdv_relance_preventive' rdv.pk %}" class="btn btn-sm btn-ghost">📞</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state"><div class="icon">📭</div><p>Aucun historique de RDV</p></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

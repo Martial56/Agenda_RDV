@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}À Relancer{% endblock %}
+{% block page_title %}📞 À Relancer{% endblock %}
+{% block content %}
+
+<div class="stat-grid" style="grid-template-columns:repeat(2,1fr);max-width:480px;margin-bottom:24px;">
+  <div class="stat-card warning">
+    <div class="stat-label">Relances préventives J-2</div>
+    <div class="stat-value">{{ preventives.count }}</div>
+    <div class="stat-icon">🔔</div>
+  </div>
+  <div class="stat-card danger">
+    <div class="stat-label">Relances absence J+7</div>
+    <div class="stat-value">{{ absences.count }}</div>
+    <div class="stat-icon">⚠️</div>
+  </div>
+</div>
+
+{# ── BLOC 1 : Relances préventives J-2 ── #}
+<div class="card mb-3">
+  <div class="card-header">
+    <span class="card-title">🔔 Relances préventives — RDV dans 2 jours ({{ j2|date:"d/m/Y" }})</span>
+    <span class="badge badge-warning">{{ preventives.count }} patient(s)</span>
+  </div>
+  <div style="padding:8px 22px 10px;font-size:12px;color:var(--text-secondary);background:var(--surface-2);border-bottom:1px solid var(--border);">
+    Ces patients ont un RDV prévu le <strong>{{ j2|date:"d/m/Y" }}</strong>.
+    Contacter maintenant pour <strong>confirmer leur venue</strong> ou reprogrammer si nécessaire.
+  </div>
+  {% if preventives %}
+  <div class="table-wrapper">
+    <table class="arv-table">
+      <thead>
+        <tr><th>Patient</th><th>Date RDV</th><th>Motif</th><th>Contact</th><th>Résidence</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        {% for rdv in preventives %}
+        <tr>
+          <td><a href="{% url 'patient_detail' rdv.patient.pk %}" class="patient-id">{{ rdv.patient.numero_unique }}</a></td>
+          <td><span class="badge badge-warning">{{ rdv.date_rdv|date:"d/m/Y" }}</span></td>
+          <td style="font-size:12px;">{{ rdv.get_motif_rdv_display }}</td>
+          <td class="mono" style="font-size:12px;">{{ rdv.patient.contact_telephone }}</td>
+          <td style="font-size:12px;">{{ rdv.patient.residence_adresse|truncatechars:28 }}</td>
+          <td>
+            <a href="{% url 'rdv_relance_preventive' rdv.pk %}" class="btn btn-sm btn-accent">🔔 Relance J-2</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state" style="padding:20px;">
+    <div class="icon" style="font-size:28px;">✅</div>
+    <p>Aucune relance préventive à effectuer aujourd'hui.</p>
+  </div>
+  {% endif %}
+</div>
+
+{# ── BLOC 2 : Relances absence J+7 ── #}
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">⚠️ Relances absence — RDV manqué depuis ≥ 7 jours</span>
+    <span class="badge badge-danger">{{ absences.count }} patient(s)</span>
+  </div>
+  <div style="padding:8px 22px 10px;font-size:12px;color:var(--text-secondary);background:var(--surface-2);border-bottom:1px solid var(--border);">
+    Ces patients n'ont pas honoré leur RDV manqué <strong>entre le {{ seuil_absence_min|date:"d/m/Y" }} et le {{ seuil_absence_max|date:"d/m/Y" }}</strong>
+    et n'ont pas encore été relancés pour leur absence.
+  </div>
+  {% if absences %}
+  <div class="table-wrapper">
+    <table class="arv-table">
+      <thead>
+        <tr><th>Patient</th><th>RDV manqué</th><th>Retard</th><th>Motif</th><th>Contact</th><th>Résidence</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        {% for rdv in absences %}
+        <tr>
+          <td><a href="{% url 'patient_detail' rdv.patient.pk %}" class="patient-id">{{ rdv.patient.numero_unique }}</a></td>
+          <td class="mono text-danger">{{ rdv.date_rdv|date:"d/m/Y" }}</td>
+          <td><span class="badge badge-danger">{{ today|timeuntil:rdv.date_rdv }}</span></td>
+          <td style="font-size:12px;">{{ rdv.get_motif_rdv_display }}</td>
+          <td class="mono" style="font-size:12px;">{{ rdv.patient.contact_telephone }}</td>
+          <td style="font-size:12px;">{{ rdv.patient.residence_adresse|truncatechars:25 }}</td>
+          <td>
+            <a href="{% url 'rdv_relance_absence' rdv.pk %}" class="btn btn-sm btn-danger">⚠️ Relance J+7</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state" style="padding:20px;">
+    <div class="icon" style="font-size:28px;">✅</div>
+    <p>Aucune relance absence à effectuer.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
