@@ -38,6 +38,14 @@ def dashboard(request):
         est_venu=False,
         date_relance_absence__isnull=True,
     ).select_related('patient')
+    
+    # PDV de plus rupture : RDV absents depuis plus de 28 jours
+    seuil = date.today() - timedelta(days=28)
+
+    pdv = RendezVous.objects.filter(
+        date_rdv__lt=seuil,
+        est_venu=False
+    ).select_related('patient')
 
     agenda_7j = [
         {'date': today + timedelta(days=i),
@@ -57,6 +65,8 @@ def dashboard(request):
         'nb_relances_preventives': relances_preventives.count(),
         'nb_relances_absence':     relances_absence.count(),
         'total_patients': Patient.objects.count(),
+        'pdv': pdv,
+        'nb_pdv': pdv.count(),
         'rdv_ce_mois': RendezVous.objects.filter(
             date_rdv__month=today.month, date_rdv__year=today.year).count(),
         'agenda_7j': agenda_7j,
@@ -222,14 +232,23 @@ def a_relancer_list(request):
         est_venu=False,
         date_relance_absence__isnull=True,
     ).select_related('patient').order_by('date_rdv')
+    
+    seuil = date.today() - timedelta(days=28)
+
+    pdv = RendezVous.objects.filter(
+        date_rdv__lt=seuil,
+        est_venu=False
+    ).select_related('patient').order_by('date_rdv')
+    
+    for rdv in pdv:
+        rdv.jours_absent = (date.today() - rdv.date_rdv).days
 
     return render(request, 'agenda/a_relancer.html', {
         'preventives': preventives,
         'absences':    absences,
+        'pdv':           pdv,
         'today':       today,
         'j2':          j2,
-        'seuil_absence_min': min_date,
-        'seuil_absence_max': max_date,
     })
 
 
@@ -333,3 +352,69 @@ def api_stats(request):
             'absents': rdv.filter(est_venu=False).count(),
         })
     return JsonResponse({'stats': stats})
+
+
+# ─── PDV (Perdus De Vue) ─────────────────────────────────────────────────────
+@login_required
+def pdv_relance(request, pk):
+    rdv = get_object_or_404(RendezVous, pk=pk)
+
+    # 🔴 Vérifier si le patient est vraiment PDV (> 28 jours d'absence)
+    if not rdv.date_rdv:
+        messages.error(request, "Date du rendez-vous invalide.")
+        return redirect('a_relancer_list')
+
+    delta = date.today() - rdv.date_rdv
+
+    if rdv.est_venu or delta.days <= 28:
+        messages.warning(request, "Ce patient n'est pas encore considéré comme perdu de vue.")
+        return redirect('a_relancer_list')
+
+    # ✅ Traitement du formulaire
+    if request.method == 'POST':
+        form = RelanceAbsenceForm(request.POST, instance=rdv)
+
+        if form.is_valid():
+            saved = form.save()
+
+            # 🔁 Reprogrammation si nécessaire
+            if saved.resultat_relance_absence == '3' and saved.date_rdv_reprogramme:
+                _creer_rdv_reprogramme(rdv, saved.date_rdv_reprogramme, request.user)
+
+                messages.success(
+                    request,
+                    f"Patient PDV relancé. RDV reprogrammé au "
+                    f"{saved.date_rdv_reprogramme.strftime('%d/%m/%Y')}."
+                )
+            else:
+                messages.success(request, "Relance du patient PDV enregistrée.")
+
+            return redirect('pdv_list')  # 🔥 liste spécifique PDV
+
+    else:
+        form = RelanceAbsenceForm(
+            instance=rdv,
+            initial={'date_relance_absence': date.today()}
+        )
+
+    return render(request, 'agenda/relance_form.html', {
+        'form': form,
+        'rdv': rdv,
+        'type_relance': 'pdv'  # 🔥 différenciation UI
+    })
+
+@login_required
+def pdv_list(request):
+    seuil = date.today() - timedelta(days=28)
+
+    pdv_rdv = RendezVous.objects.filter(
+        date_rdv__lt=seuil,
+        est_venu=False
+    ).select_related('patient')
+    
+    for rdv in pdv_rdv:
+        rdv.jours_absent = (date.today() - rdv.date_rdv).days
+
+    return render(request, 'agenda/pdv_list.html', {
+        'rdv_list': pdv_rdv
+    })

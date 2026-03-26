@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Patients Perdus de Vue{% endblock %}
+{% block page_title %}👤❌ Patients Perdus de Vue{% endblock %}
+
+{% block content %}
+
+<!-- 🔴 STATISTIQUE PDV -->
+<div class="stat-grid" style="grid-template-columns:repeat(2,1fr);max-width:480px;margin-bottom:24px;">
+  <div class="stat-card danger">
+    <div class="stat-label">Patients PDV (> 28 jours)</div>
+    <div class="stat-value">{{ rdv_list|length }}</div>
+    <div class="stat-icon">👤❌</div>
+  </div>
+</div>
+
+<!-- 🔴 TABLE PDV -->
+<div class="card mb-3">
+  <div class="card-header">
+    <span class="card-title">📋 Liste des patients perdus de vue</span>
+    <span class="badge badge-danger">{{ rdv_list|length }} patient(s)</span>
+  </div>
+
+  <div style="padding:8px 22px 10px;font-size:12px;color:var(--text-secondary);background:var(--surface-2);border-bottom:1px solid var(--border);">
+    Ces patients ont dépassé <strong>28 jours sans consultation</strong>.
+    Une <strong>relance active</strong> est recommandée (appel, visite ou reprogrammation).
+  </div>
+
+  {% if rdv_list %}
+  <div class="table-wrapper">
+    <table class="arv-table">
+      <thead>
+        <tr>
+          <th>Patient</th>
+          <th>Dernier RDV</th>
+          <th>Jours d'absence</th>
+          <th>Contact</th>
+          <th>Résidence</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rdv in rdv_list %}
+        <tr>
+          <td>
+            <a href="{% url 'patient_detail' rdv.patient.pk %}" class="patient-id">
+              {{ rdv.patient.numero_unique }}
+            </a>
+          </td>
+
+          <td>
+            <span class="badge badge-danger">
+              {{ rdv.date_rdv|date:"d/m/Y" }}
+            </span>
+          </td>
+
+          <!-- 🔥 Calcul dynamique des jours -->
+          <td>
+            <span class="badge badge-danger">
+              -{{ rdv.jours_absent }}  Jours
+            </span>
+          </td>
+
+          <td class="mono" style="font-size:12px;">
+            {{ rdv.patient.contact_telephone }}
+          </td>
+
+          <td style="font-size:12px;">
+            {{ rdv.patient.residence_adresse|truncatechars:28 }}
+          </td>
+
+          <td>
+            <a href="{% url 'pdv_a_relancer' rdv.pk %}" class="btn btn-sm btn-danger">
+              📞 Relancer
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% else %}
+  <div class="empty-state" style="padding:20px;">
+    <div class="icon" style="font-size:28px;">✅</div>
+    <p>Aucun patient perdu de vue </p>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

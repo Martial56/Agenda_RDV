@@ -70,6 +70,12 @@
         <span class="nav-badge" style="margin-left:auto;">{{ nb_relances_preventives|add:nb_relances_absence }}</span>
         {% endif %}
       </a>
+      <a href="{% url 'pdv_list' %}" class="btn btn-ghost">
+        👤❌ PDV
+        {% if nb_pdv %}
+        <span class="nav-badge" style="margin-left:auto;">{{ nb_pdv}}</span>
+        {% endif %}
+      </a>
       <a href="{% url 'generer_hebdo' %}" class="btn btn-ghost">📊 Synthèse Hebdo</a>
     </div>
   </div>

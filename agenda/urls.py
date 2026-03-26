@@ -14,5 +14,7 @@ urlpatterns = [
     path('rdv/<int:pk>/relance-absence/', views.rdv_relance_absence, name='rdv_relance_absence'),
     path('rdv/<int:pk>/presence/', views.rdv_presence, name='rdv_presence'),
     path('relances/', views.a_relancer_list, name='a_relancer_list'),
+    path('relances_pdv/<int:pk>/pdv/', views.pdv_relance, name='pdv_a_relancer'),
+    path('pdv/', views.pdv_list, name='pdv_list'),
     path('api/stats/', views.api_stats, name='api_stats'),
 ]
