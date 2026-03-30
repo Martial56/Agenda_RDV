@@ -51,12 +51,19 @@
   </nav>
   <div class="sidebar-footer">
     <div class="user-info">
+      
       <div class="user-avatar">{{ user.username|slice:":1"|upper }}</div>
-      <div>
+
+      <div class="user-details">
         <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
         <div class="user-role">Prestataire</div>
       </div>
-      <a href="{% url 'logout' %}" class="btn-logout" title="Déconnexion">🚪</a>
+
+      <form method="POST" action="{% url 'logout' %}" class="logout-form">
+        {% csrf_token %}
+        <button type="submit" class="btn-logout" title="Déconnexion">🚪</button>
+      </form>
+
     </div>
   </div>
 </aside>

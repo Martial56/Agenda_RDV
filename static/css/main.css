@@ -167,12 +167,21 @@ body {
   color: rgba(255,255,255,0.4);
 }
 
+.logout-form {
+  margin-left: auto;
+}
+
 .btn-logout {
   margin-left: auto;
   color: rgba(255,255,255,0.4);
   text-decoration: none;
   font-size: 14px;
   transition: color 0.15s;
+
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
 }
 
 .btn-logout:hover { color: var(--danger); }
