@@ -8,7 +8,7 @@ class PatientForm(forms.ModelForm):
         model = Patient
         exclude = ['cree_par', 'date_creation']
         widgets = {
-            'numero_unique':      forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: ABJ/001/2026'}),
+            'numero_unique':      forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 09817/01/26:XXXX'}),
             'code_etablissement': forms.TextInput(attrs={'class': 'form-control', 'value': 'CMS WALE', 'readonly': 'readonly'}),
             'numero_site':        forms.TextInput(attrs={'class': 'form-control', 'value': '09817', 'readonly': 'readonly'}),
             'sexe':               forms.Select(attrs={'class': 'form-select'}),
@@ -80,15 +80,15 @@ class RelanceAbsenceForm(forms.ModelForm):
 class PresenceForm(forms.ModelForm):
     class Meta:
         model = RendezVous
-        fields = ['est_venu', 'date_derniere_visite', 'date_prochain_rdv','motif_rdv', 'motif_non_venue']
+        fields = ['est_venu', 'date_prochain_rdv', 'motif_non_venue'] #'date_derniere_visite', 'motif_rdv', 
         widgets = {
             'est_venu': forms.Select(
                 attrs={'class': 'form-select'},
                 choices=[('', '-- Sélectionner --'), ('True', 'Oui — Venu'), ('False', 'Non — Absent')]
             ),
-            'date_derniere_visite': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            #'date_derniere_visite': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'date_prochain_rdv': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'motif_rdv':  forms.Select(attrs={'class': 'form-select'}),
+            #'motif_rdv':  forms.Select(attrs={'class': 'form-select'}),
             'motif_non_venue':   forms.TextInput(attrs={'class': 'form-control'}),
         }
 
