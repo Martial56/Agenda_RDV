@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% block title %}Tableau de Bord{% endblock %}
+{% block page_title %}📊 Tableau de Bord{% endblock %}
+{% block content %}
+
+<div class="stat-grid">
+  <div class="stat-card primary">
+    <div class="stat-label">Patients Total</div>
+    <div class="stat-value">{{ total_patients }}</div>
+    <div class="stat-icon">👥</div>
+  </div>
+  <div class="stat-card info">
+    <div class="stat-label">RDV Aujourd'hui</div>
+    <div class="stat-value">{{ rdv_aujourd_hui.count }}</div>
+    <div class="stat-icon">📅</div>
+  </div>
+  <div class="stat-card success">
+    <div class="stat-label">Venus Aujourd'hui</div>
+    <div class="stat-value">{{ rdv_venus }}</div>
+    <div class="stat-icon">✅</div>
+  </div>
+  <div class="stat-card danger">
+    <div class="stat-label">Absents</div>
+    <div class="stat-value">{{ rdv_absents }}</div>
+    <div class="stat-icon">❌</div>
+  </div>
+  <div class="stat-card warning">
+    <div class="stat-label">Relances J-2</div>
+    <div class="stat-value">{{ nb_relances_preventives }}</div>
+    <div class="stat-icon">🔔</div>
+  </div>
+  <div class="stat-card danger">
+    <div class="stat-label">Relances J+7</div>
+    <div class="stat-value">{{ nb_relances_absence }}</div>
+    <div class="stat-icon">⚠️</div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:24px;">
+  <!-- Agenda 7 jours -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">📅 Agenda — 7 prochains jours</span>
+      <a href="{% url 'rdv_create' %}" class="btn btn-primary btn-sm">+ Planifier RDV</a>
+    </div>
+    <div class="card-body">
+      <div class="cal-strip">
+        {% for j in agenda_7j %}
+        <a href="{% url 'agenda_jour' %}?date={{ j.date|date:'Y-m-d' }}"
+           class="cal-day {% if j.date == today %}today{% endif %}">
+          <div class="day-name">{{ j.date|date:"D" }}</div>
+          <div class="day-num">{{ j.date|date:"d" }}</div>
+          <div class="day-count">{{ j.count }} RDV</div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions rapides -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">⚡ Actions Rapides</span></div>
+    <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+      <a href="{% url 'patient_create' %}" class="btn btn-primary">👤 Nouveau Patient</a>
+      <a href="{% url 'rdv_create' %}" class="btn btn-accent">🗓️ Planifier un RDV</a>
+      <a href="{% url 'agenda_jour' %}" class="btn btn-outline">📋 Agenda du jour</a>
+      <a href="{% url 'a_relancer_list' %}" class="btn btn-ghost">
+        📞 Relances
+        {% if nb_relances_preventives or nb_relances_absence %}
+        <span class="nav-badge" style="margin-left:auto;">{{ nb_relances_preventives|add:nb_relances_absence }}</span>
+        {% endif %}
+      </a>
+      <a href="{% url 'pdv_list' %}" class="btn btn-ghost">
+        👤❌ PDV
+        {% if nb_pdv %}
+        <span class="nav-badge" style="margin-left:auto;">{{ nb_pdv}}</span>
+        {% endif %}
+      </a>
+      <a href="{% url 'generer_hebdo' %}" class="btn btn-ghost">📊 Synthèse Hebdo</a>
+    </div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+  <!-- RDV du jour -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">🏥 RDV d'Aujourd'hui</span>
+      <a href="{% url 'agenda_jour' %}" class="btn btn-ghost btn-sm">Tout voir →</a>
+    </div>
+    <div class="table-wrapper">
+      {% if rdv_aujourd_hui %}
+      <table class="arv-table">
+        <thead><tr><th>#</th><th>Patient</th><th>Motif</th><th>Statut</th></tr></thead>
+        <tbody>
+          {% for rdv in rdv_aujourd_hui|slice:":8" %}
+          <tr>
+            <td><div class="agenda-num">{{ rdv.numero_ordre }}</div></td>
+            <td><a href="{% url 'patient_detail' rdv.patient.pk %}" class="patient-id">{{ rdv.patient.numero_unique }}</a></td>
+            <td style="font-size:12px;">{{ rdv.get_motif_rdv_display|truncatechars:18 }}</td>
+            <td>
+              {% if rdv.est_venu == True %}<span class="badge badge-success">✓ Venu</span>
+              {% elif rdv.est_venu == False %}<span class="badge badge-danger">✗ Absent</span>
+              {% else %}<span class="badge badge-warning">⏳ Attente</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state"><div class="icon">📭</div><p>Aucun RDV prévu aujourd'hui</p></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Relances du jour -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">📞 Relances à effectuer</span>
+      <a href="{% url 'a_relancer_list' %}" class="btn btn-ghost btn-sm">Tout voir →</a>
+    </div>
+    <div class="card-body" style="padding:0;">
+      {% if relances_preventives %}
+      <div style="padding:10px 16px 6px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--warning);border-bottom:1px solid var(--border);">
+        🔔 Préventives J-2 ({{ relances_preventives.count }})
+      </div>
+      <table class="arv-table">
+        <tbody>
+          {% for rdv in relances_preventives|slice:":4" %}
+          <tr>
+            <td><a href="{% url 'patient_detail' rdv.patient.pk %}" class="patient-id">{{ rdv.patient.numero_unique }}</a></td>
+            <td class="mono" style="font-size:11px;">RDV {{ rdv.date_rdv|date:"d/m" }}</td>
+            <td><a href="{% url 'rdv_relance_preventive' rdv.pk %}" class="btn btn-sm btn-accent">Relancer</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+
+      {% if relances_absence %}
+      <div style="padding:10px 16px 6px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--danger);border-bottom:1px solid var(--border);{% if relances_preventives %}border-top:1px solid var(--border);{% endif %}">
+        ⚠️ Absences J+7 ({{ relances_absence.count }})
+      </div>
+      <table class="arv-table">
+        <tbody>
+          {% for rdv in relances_absence|slice:":4" %}
+          <tr>
+            <td><a href="{% url 'patient_detail' rdv.patient.pk %}" class="patient-id">{{ rdv.patient.numero_unique }}</a></td>
+            <td class="mono text-danger" style="font-size:11px;">Manqué {{ rdv.date_rdv|date:"d/m" }}</td>
+            <td><a href="{% url 'rdv_relance_absence' rdv.pk %}" class="btn btn-sm btn-danger">Relancer</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+
+      {% if not relances_preventives and not relances_absence %}
+      <div class="empty-state"><div class="icon">✅</div><p>Aucune relance à effectuer</p></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

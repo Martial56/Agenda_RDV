@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block title %}Rapports{% endblock %}
+{% block page_title %}📊 Rapports{% endblock %}
+
+{% block content %}
+<div class="rapport-container">
+
+  <!-- Sélection de la période -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h2 class="card-title">🗓️ Définir la période</h2>
+    </div>
+    <div class="card-body">
+      <form method="GET" action="{% url 'rapport_page' %}" id="periode-form">
+        <div class="rapport-periode-row">
+          <div class="form-group">
+            <label class="form-label">Date début</label>
+            {{ form.date_debut }}
+            {% if form.date_debut.errors %}
+              <div class="form-error">{{ form.date_debut.errors.0 }}</div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date fin</label>
+            {{ form.date_fin }}
+            {% if form.date_fin.errors %}
+              <div class="form-error">{{ form.date_fin.errors.0 }}</div>
+            {% endif %}
+          </div>
+          <div class="form-group form-group-btn">
+            <button type="submit" class="btn btn-primary">
+              ✅ Valider la période
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Options de rapport -->
+  {% if date_debut and date_fin %}
+  <div class="rapport-periode-badge">
+    📅 Période sélectionnée : <strong>{{ date_debut|date:"d/m/Y" }}</strong> → <strong>{{ date_fin|date:"d/m/Y" }}</strong>
+  </div>
+
+  <div class="rapport-grid">
+
+    <!-- Carte 1 : Charge virale -->
+    <div class="rapport-card rapport-card-blue">
+      <div class="rapport-card-icon">🧪</div>
+      <div class="rapport-card-body">
+        <h3>Charge Virale</h3>
+        <p>Liste des patients attendus pour la réalisation d'une charge virale sur la période.</p>
+      </div>
+      <a href="{% url 'rapport_export' 'charge_virale' %}?date_debut={{ date_debut|date:'Y-m-d' }}&date_fin={{ date_fin|date:'Y-m-d' }}"
+         class="btn btn-export">
+        📥 Exporter Excel
+      </a>
+    </div>
+
+    <!-- Carte 2 : Patients attendus -->
+    <div class="rapport-card rapport-card-teal">
+      <div class="rapport-card-icon">📋</div>
+      <div class="rapport-card-body">
+        <h3>Patients Attendus</h3>
+        <p>Liste de tous les patients ayant un RDV planifié sur la période.</p>
+      </div>
+      <a href="{% url 'rapport_export' 'patients_attendus' %}?date_debut={{ date_debut|date:'Y-m-d' }}&date_fin={{ date_fin|date:'Y-m-d' }}"
+         class="btn btn-export">
+        📥 Exporter Excel
+      </a>
+    </div>
+
+    <!-- Carte 3 : RDV manqués -->
+    <div class="rapport-card rapport-card-red">
+      <div class="rapport-card-icon">❌</div>
+      <div class="rapport-card-body">
+        <h3>RDV Manqués</h3>
+        <p>Liste des patients ayant manqué leur rendez-vous sur la période.</p>
+      </div>
+      <a href="{% url 'rapport_export' 'rdv_manques' %}?date_debut={{ date_debut|date:'Y-m-d' }}&date_fin={{ date_fin|date:'Y-m-d' }}"
+         class="btn btn-export">
+        📥 Exporter Excel
+      </a>
+    </div>
+
+    <!-- Carte 4 : RDV honorés -->
+    <div class="rapport-card rapport-card-green">
+      <div class="rapport-card-icon">✅</div>
+      <div class="rapport-card-body">
+        <h3>RDV Honorés</h3>
+        <p>Liste des patients ayant respecté leur rendez-vous sur la période.</p>
+      </div>
+      <a href="{% url 'rapport_export' 'rdv_honores' %}?date_debut={{ date_debut|date:'Y-m-d' }}&date_fin={{ date_fin|date:'Y-m-d' }}"
+         class="btn btn-export">
+        📥 Exporter Excel
+      </a>
+    </div>
+
+  </div>
+  {% else %}
+  <div class="rapport-empty">
+    <div class="rapport-empty-icon">📅</div>
+    <p>Veuillez sélectionner une <strong>date début</strong> et une <strong>date fin</strong> pour afficher les options de rapport.</p>
+  </div>
+  {% endif %}
+
+</div>
+
+<style>
+.rapport-container { max-width: 1100px; }
+
+.rapport-periode-row {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.rapport-periode-row .form-group { flex: 1; min-width: 160px; }
+.rapport-periode-row .form-group-btn { flex: 0 0 auto; }
+
+.rapport-periode-badge {
+  background: #e8f0fe;
+  border: 1px solid #4285f4;
+  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1.5rem;
+  color: #1a365d;
+  font-size: 0.95rem;
+}
+
+.rapport-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+
+.rapport-card {
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: transform .15s, box-shadow .15s;
+}
+.rapport-card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.13); }
+
+.rapport-card-blue  { background: #e8f4fd; border-top: 4px solid #1F4E79; }
+.rapport-card-teal  { background: #e6f7f5; border-top: 4px solid #00796b; }
+.rapport-card-red   { background: #fdecea; border-top: 4px solid #c0392b; }
+.rapport-card-green { background: #eaf7ec; border-top: 4px solid #27ae60; }
+
+.rapport-card-icon { font-size: 2rem; }
+.rapport-card-body h3 { margin: 0 0 .4rem; font-size: 1rem; font-weight: 700; color: #1a1a2e; }
+.rapport-card-body p  { margin: 0; font-size: 0.85rem; color: #555; line-height: 1.4; flex-grow: 1; }
+
+.btn-export {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: #1F4E79;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: .55rem 1rem;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .15s;
+  align-self: flex-start;
+}
+.btn-export:hover { background: #163d61; color: #fff; }
+
+.rapport-card-red .btn-export   { background: #c0392b; }
+.rapport-card-red .btn-export:hover { background: #962d22; }
+.rapport-card-green .btn-export { background: #27ae60; }
+.rapport-card-green .btn-export:hover { background: #1e8449; }
+.rapport-card-teal .btn-export  { background: #00796b; }
+.rapport-card-teal .btn-export:hover { background: #005f56; }
+
+.rapport-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #777;
+}
+.rapport-empty-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+.rapport-empty p { font-size: 1rem; }
+
+.form-error { color: #c0392b; font-size: 0.82rem; margin-top: 4px; }
+</style>
+{% endblock %}

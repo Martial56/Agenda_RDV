@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}👤 {{ title }}{% endblock %}
+{% block content %}
+<div style="max-width:900px;">
+  <form method="post">
+    {% csrf_token %}
+    
+    <div class="form-section">
+      <div class="form-section-title">🔑 Identification (Colonne B)</div>
+      <div class="form-grid-3">
+        <div class="form-group">
+          <label class="form-label">N° Unique d'identification *</label>
+          {{ form.numero_unique }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nom Établissement *</label>
+          {{ form.code_etablissement }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Code Site</label>
+          {{ form.numero_site }}
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">👤 Données Démographiques (Colonnes C, D)</div>
+      <div class="form-grid-3">
+        <div class="form-group">
+          <label class="form-label">Sexe *</label>
+          {{ form.sexe }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Âge *</label>
+          {{ form.age }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Âge en mois</label>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+            {{ form.age_en_mois }}
+            <span style="font-size:13px;color:var(--text-secondary);">Cocher si enfant de moins de 2 ans</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">🏥 Type de Client (Colonne E)</div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Type de client *</label>
+          {{ form.type_client }}
+          <small style="color:var(--text-muted);font-size:11px;margin-top:4px;display:block;">
+            1=TARV | 2=Enfant exposé | 3=Femme enceinte | 4=Femme allaitante | 5=Pop. clés
+          </small>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Population Clés (si applicable)</label>
+          {{ form.population_cles }}
+          <small style="color:var(--text-muted);font-size:11px;margin-top:4px;display:block;">
+            TS | HSH | UD | PC
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">💊 Traitement ARV (Colonne F)</div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Date de mise sous ARV *</label>
+          {{ form.date_mise_sous_arv }}
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">📞 Contact et Localisation (Colonnes G, H)</div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Contact téléphonique *</label>
+          {{ form.contact_telephone }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Résidence / Adresse géographique *</label>
+          {{ form.residence_adresse }}
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;">
+      <button type="submit" class="btn btn-primary">💾 Enregistrer le Patient</button>
+      <a href="{% url 'patient_list' %}" class="btn btn-ghost">Annuler</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

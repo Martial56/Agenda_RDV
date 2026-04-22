@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Présence au RDV{% endblock %}
+{% block page_title %}✅ Enregistrer la Présence (Colonnes M & N){% endblock %}
+{% block content %}
+<div style="max-width:600px;">
+  <div class="alert alert-info">
+    📋 Présence pour : <strong>{{ rdv.patient.numero_unique }}</strong> — RDV du <strong>{{ rdv.date_rdv|date:"d/m/Y" }}</strong>
+    <br><small>Motif : {{ rdv.get_motif_rdv_display }}</small>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-section">
+          <div class="form-section-title">✅ Présence — Colonne M</div>
+          <div class="form-group">
+            <label class="form-label">Le patient est-il venu ? *</label>
+            {{ form.est_venu }}
+          </div>
+          <!--<div class="form-group">
+            <label class="form-label">Date de visite ? *</label>
+            {{ form.date_derniere_visite }}
+          </div>-->
+        </div>
+        <div class="form-section">
+          <div class="form-section-title">🗓️ Prochain RDV — Colonne N</div>
+          <div class="form-group">
+            <label class="form-label">Date du Prochain RDV</label>
+            {{ form.date_prochain_rdv }}
+            <small style="color:var(--text-muted);font-size:11px;display:block;margin-top:4px;">
+              💡 Si renseigné, le prochain RDV sera automatiquement créé dans l'agenda.
+            </small>
+           <label class="form-label" style="margin-top:12px;">Motif du Prochain RDV</label>
+            {{ form.motif_prochain_rdv }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Motif de non-venue (si absent)</label>
+            {{ form.motif_non_venue }}
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;">
+          <button type="submit" class="btn btn-success">💾 Enregistrer la Présence</button>
+          <a href="{% url 'agenda_jour' %}" class="btn btn-ghost">Annuler</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

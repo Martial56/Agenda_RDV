@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Synthèses{% endblock %}
+{% block page_title %}📊 Synthèses{% endblock %}
+{% block content %}
+
+<div style="display:flex;gap:12px;margin-bottom:20px;">
+  <a href="{% url 'generer_hebdo' %}" class="btn btn-primary">📊 Générer Synthèse Hebdo</a>
+  <a href="{% url 'generer_mensuelle' %}" class="btn btn-accent">📅 Générer Synthèse Mensuelle</a>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+  <div class="card">
+    <div class="card-header"><span class="card-title">📋 Synthèses Hebdomadaires</span></div>
+    <div class="table-wrapper">
+      {% if hebdo_list %}
+      <table class="arv-table">
+        <thead><tr><th>Semaine</th><th>Prévus</th><th>Venus</th><th>Absents</th><th>Taux</th><th></th></tr></thead>
+        <tbody>
+          {% for s in hebdo_list %}
+          <tr>
+            <td class="mono" style="font-size:12px;">{{ s.semaine_debut|date:"d/m" }} - {{ s.semaine_fin|date:"d/m/Y" }}</td>
+            <td class="mono">{{ s.total_rdv_prevus }}</td>
+            <td><span class="badge badge-success">{{ s.total_venus }}</span></td>
+            <td><span class="badge badge-danger">{{ s.total_absents }}</span></td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress" style="width:60px;"><div class="progress-bar success" style="width:{{ s.taux_presence }}%"></div></div>
+                <span class="mono" style="font-size:12px;">{{ s.taux_presence }}%</span>
+              </div>
+            </td>
+            <td><a href="{% url 'synthese_hebdo_detail' s.pk %}" class="btn btn-sm btn-ghost">→</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state"><div class="icon">📋</div><p>Aucune synthèse hebdomadaire</p></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-title">📅 Synthèses Mensuelles</span></div>
+    <div class="table-wrapper">
+      {% if mensuel_list %}
+      <table class="arv-table">
+        <thead><tr><th>Mois</th><th>Prévus</th><th>Venus</th><th>Absents</th><th>PDV</th><th>Taux</th></tr></thead>
+        <tbody>
+          {% for s in mensuel_list %}
+          <tr>
+            <td class="fw-bold">{{ s }}</td>
+            <td class="mono">{{ s.total_rdv_prevus }}</td>
+            <td><span class="badge badge-success">{{ s.total_venus }}</span></td>
+            <td><span class="badge badge-danger">{{ s.total_absents }}</span></td>
+            <td><span class="badge badge-warning">{{ s.total_perdus_de_vue }}</span></td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress" style="width:60px;"><div class="progress-bar success" style="width:{{ s.taux_presence }}%"></div></div>
+                <span class="mono" style="font-size:12px;">{{ s.taux_presence }}%</span>
+              </div>
+            </td>
+            <td><a href="{% url 'synthese_mensuelle_detail' s.pk %}" class="btn btn-sm btn-ghost">→</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state"><div class="icon">📅</div><p>Aucune synthèse mensuelle</p></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

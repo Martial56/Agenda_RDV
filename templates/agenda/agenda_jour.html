@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block title %}Agenda du Jour{% endblock %}
+{% block page_title %}📅 Agenda du Jour{% endblock %}
+{% block content %}
+
+<!-- Filtres date -->
+<div class="card mb-3">
+  <div class="card-body" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <form method="get" style="display:flex;align-items:center;gap:10px;flex:1;">
+      <label class="form-label" style="margin:0;white-space:nowrap;">📅 Date :</label>
+      {{ form.date }}
+      <button type="submit" class="btn btn-primary btn-sm">Afficher</button>
+    </form>
+    <div style="display:flex;gap:10px;">
+      <a href="?date={{ selected_date|date:'Y-m-d'|add:'-1' }}" class="btn btn-ghost btn-sm">← Jour précédent</a>
+      <a href="?" class="btn btn-ghost btn-sm">Aujourd'hui</a>
+      <a href="{% url 'rdv_create' %}?date={{ selected_date|date:'Y-m-d' }}" class="btn btn-primary btn-sm">+ Ajouter RDV</a>
+    </div>
+  </div>
+</div>
+
+<!-- Stats rapides -->
+<div class="stat-grid" style="grid-template-columns:repeat(4,1fr);">
+  <div class="stat-card info">
+    <div class="stat-label">Total RDV</div>
+    <div class="stat-value">{{ stats.total }}</div>
+  </div>
+  <div class="stat-card success">
+    <div class="stat-label">Venus</div>
+    <div class="stat-value">{{ stats.venus }}</div>
+  </div>
+  <div class="stat-card danger">
+    <div class="stat-label">Absents</div>
+    <div class="stat-value">{{ stats.absents }}</div>
+  </div>
+  <div class="stat-card warning">
+    <div class="stat-label">En Attente</div>
+    <div class="stat-value">{{ stats.en_attente }}</div>
+  </div>
+</div>
+
+<!-- Table agenda (reproduit les colonnes A à N) -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">📋 Agenda — {{ selected_date|date:"l d F Y" }}</span>
+    <span style="font-size:12px;color:var(--text-muted);">{{ stats.total }} patient(s) enregistré(s)</span>
+  </div>
+  {% if rdv_list %}
+  <div class="table-wrapper">
+    <table class="arv-table">
+      <thead>
+        <tr>
+          <th title="Colonne A">N°</th>
+          <th title="Colonne B">ID Patient</th>
+          <th title="Colonne C">Sexe</th>
+          <th title="Colonne D">Âge</th>
+          <th title="Colonne E">Type</th>
+          <th title="Colonne F">Sous ARV</th>
+          <th title="Colonne G">Contact</th>
+          <th title="Colonne H">Résidence</th>
+          <th title="Colonne I">Dernière Visite</th>
+          <th title="Colonne J">Motif RDV</th>
+          <th title="Colonne K">Relance</th>
+          <th title="Colonne L">Résultat Relance</th>
+          <th title="Colonne M">Présence</th>
+          <th title="Colonne N">Prochain RDV</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rdv in rdv_list %}
+        <tr>
+          <td><div class="agenda-num">{{ rdv.numero_ordre }}</div></td>
+          <td><a href="{% url 'patient_detail' rdv.patient.pk %}" class="patient-id">{{ rdv.patient.numero_unique }}</a></td>
+          <td>
+            {% if rdv.patient.sexe == 'M' %}
+            <span class="badge badge-info">♂ M</span>
+            {% else %}
+            <span class="badge badge-warning">♀ F</span>
+            {% endif %}
+          </td>
+          <td class="mono">{{ rdv.patient.age_display }}</td>
+          <!--<td><span class="badge badge-secondary" title="{{ rdv.patient.get_type_client_display }}">{{ rdv.patient.type_client }}</span></td>-->
+          <td><span class="badge badge-secondary" >{{ rdv.patient.get_type_client_display }}</span></td>
+          <td class="mono" style="font-size:11px;">{{ rdv.patient.date_mise_sous_arv|date:"d/m/Y" }}</td>
+          <td class="mono" style="font-size:11px;">{{ rdv.patient.contact_telephone }}</td>
+          <td style="font-size:12px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ rdv.patient.residence_adresse }}">
+            {{ rdv.patient.residence_adresse }}
+          </td>
+          <td class="mono" style="font-size:11px;">{{ rdv.date_derniere_visite|date:"d/m/Y" }}</td>
+          <!--<td>
+            <span class="badge badge-primary" title="{{ rdv.get_motif_rdv_display }}">{{ rdv.motif_rdv }}</span>
+          </td>-->
+          <td>
+            <span class="badge badge-primary">
+              {{ rdv.get_motifs_labels }}
+            </span>
+          </td>
+          <td>
+            {% if rdv.date_relance %}
+            <span class="mono" style="font-size:11px;">{{ rdv.date_relance|date:"d/m" }}</span><br>
+            <span class="badge badge-secondary" style="font-size:10px;">{{ rdv.get_moyen_relance_display|truncatechars:10 }}</span>
+            {% else %}
+            <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if rdv.resultat_relance %}
+            <span class="badge badge-info" style="font-size:10px;">{{ rdv.resultat_relance }}</span>
+            {% else %}
+            <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if rdv.est_venu == True %}<span class="badge badge-success">✓ OUI</span>
+            {% elif rdv.est_venu == False %}<span class="badge badge-danger">✗ NON</span>
+            {% else %}<span class="badge badge-warning">?</span>{% endif %}
+          </td>
+          <td class="mono" style="font-size:11px;">
+            {% if rdv.date_prochain_rdv %}{{ rdv.date_prochain_rdv|date:"d/m/Y" }}
+            {% else %}<span class="text-muted">—</span>{% endif %}
+          </td>
+          <td>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              {% if rdv.est_venu is None %}
+              <a href="{% url 'rdv_presence' rdv.pk %}" class="btn btn-sm btn-success" title="Enregistrer présence">✓</a>
+              {% endif %}
+              {% if not rdv.date_relance %}
+              <a href="{% url 'rdv_relance_preventive' rdv.pk %}" class="btn btn-sm btn-outline" title="Enregistrer relance">📞</a>
+              {% endif %}
+              <a href="{% url 'patient_detail' rdv.patient.pk %}" class="btn btn-sm btn-ghost" title="Fiche patient">👁</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="icon">📭</div>
+    <p>Aucun rendez-vous pour le <strong>{{ selected_date|date:"d/m/Y" }}</strong></p>
+    <div class="mt-2">
+      <a href="{% url 'rdv_create' %}?date={{ selected_date|date:'Y-m-d' }}" class="btn btn-primary">+ Ajouter un RDV</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
