@@ -5,6 +5,12 @@ SECRET_KEY = 'django-insecure-arv-agenda-secret-key-2026'
 DEBUG = True
 ALLOWED_HOSTS = ['localhost', '172.16.105.165']
 
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / "media"
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
